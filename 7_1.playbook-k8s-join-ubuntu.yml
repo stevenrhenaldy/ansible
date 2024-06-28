@@ -1,0 +1,87 @@
+- name: Ubuntu worker node join cluster
+  hosts: workers_ubuntu
+  vars_files:
+    - variables.yml
+    - secret.yml
+
+  tasks:
+    - name: Test Connection
+      ping:
+
+#! === Copy token file to ubuntu worker node & join ubntu worker ===
+
+    - name: Copy token file from Ansible controller to Ubuntu worker
+      copy:
+        src: "/home/{{ user }}/join-cluster-ubuntu.sh"
+        dest: "/home/{{ user }}/join-cluster-ubuntu.sh"
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: '0755'
+      become: true
+    
+    - name : Modify the permissions token file
+      shell: chmod +x join-cluster-ubuntu.sh
+
+    - name : Exicute token file
+      shell: /home/{{ user }}/join-cluster-ubuntu.sh
+      become: true
+      become_user: root
+      register: result_join
+
+    - name: Wait for join the node
+      wait_for:
+        timeout: 20
+
+    - name: Print result join cluster
+      debug:
+        msg: "{{ result_join.stdout_lines }}"
+
+#! === copy config file to ubuntu worker node ===
+
+    - name: Create .kube directory
+      file:
+        path: "/home/{{ user }}/.kube"  
+        state: directory
+        owner: "{{ user }}"  
+        group: "{{ user }}"  
+        mode: '0755'  
+
+    - name: Copy .kube file from Ansible controller to Ubuntu worker
+      copy:
+        src: "/home/{{ user }}/.kube/config"
+        dest: "/home/{{ user }}/.kube/config"
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: '0755'
+      become: true
+
+    - name: Export kubeconfig location as environment
+      shell: export KUBECONFIG=/home/{{ user }}/.kube/config
+
+
+    - name: Change ownership of the kube config file to the current user
+      file:
+        path: "/home/{{ user }}/.kube/config"
+        owner: "{{ user }}"
+
+    - name : Check cluster inforamtion
+      shell: kubectl cluster-info
+      register: cluster_info
+
+    - name: Print cluster info
+      debug:
+        msg: "{{ cluster_info.stdout_lines }}"
+
+    - name: Check list of nodes in the cluster
+      wait_for:
+        timeout: 20
+    
+    - name : Check list of nodes
+      shell: kubectl get nodes
+      register: list_nodes
+
+    - name: Print list of nodes
+      debug:
+        msg: "{{ list_nodes.stdout_lines }}"
+
+    

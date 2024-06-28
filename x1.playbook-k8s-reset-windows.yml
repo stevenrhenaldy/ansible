@@ -1,0 +1,37 @@
+---
+- name: Reset K8s in Windows Server 2019
+  hosts: workers_win
+  vars_files:
+    - variables.yml
+
+  tasks:    
+    - name: Remove HNS network
+      win_shell: Get-HnsNetwork | Remove-HnsNetwork
+
+    - name: Wait for the machine to reboot
+      wait_for_connection:
+        delay: 10
+        timeout: 600
+
+    - name: Reset kubeadm
+      win_shell: kubeadm reset -f
+
+    - name: Remove firewall rule for kubelet and ignore error if it doesn't exist
+      win_shell: Remove-NetFirewallRule kubelet -ErrorAction Ignore
+      ignore_errors: yes
+
+    - name: Remove kubelet service using nssm without confirmation
+      win_shell: nssm remove kubelet confirm
+
+    - name: Stop rancher-wins service
+      win_shell: Stop-Service rancher-wins 
+
+    - name: Remove rancher-wins service using nssm without confirmation
+      win_shell: nssm remove rancher-wins confirm
+
+    - name: Remove Kubernetes directories in Windows
+      win_shell: Remove-Item  -ErrorAction Ignore -Recurse -Force C:\k, C:\etc, C:\opt, C:\run, C:\usr, C:\var
+      ignore_errors: yes
+
+    - name: Remove dir 
+      win_command: for %%a in ("C:\k" "C:\etc" "C:\opt" "C:\run" "C:\usr" "C:\var") do rmdir /s /q "%%~a"

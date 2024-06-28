@@ -1,0 +1,45 @@
+---
+- name: Setup Kubernetes Cluster
+  hosts: control_plane
+  become: true
+  vars_files:
+    - variables.yml
+
+  tasks:
+    # - name: Mkdir
+    #   shell: mkdir -p $HOME/.kube 
+      
+    # - name: Copy Kubernetes config file 
+    #   copy: 
+    #     src: /etc/kubernetes/admin.conf 
+    #     dest: $HOME/.kube/config
+    #     mode: '0644'        
+    #     remote_src: true
+    #   become: true
+    #   become_user: root
+    
+    # - name: Chown Kubernetes config file
+    #   shell: sudo chown $(id -u):$(id -g) $HOME/.kube/config
+    
+    # - name: Usermod Docker
+    #   shell: sudo usermod -aG docker $USER
+
+    # - name: Switch to user
+    #   shell: su - $USER
+    
+    - name: Mkdir .kube directory for user
+      shell: mkdir -p /home/{{ user }}/.kube 
+      become_user: "{{ user }}"
+      
+    - name: Copy Kubernetes config file for user
+      copy: 
+        src: /etc/kubernetes/admin.conf 
+        dest: /home/{{ user }}/.kube/config
+        mode: '0644'        
+        remote_src: true
+      become: true
+      become_user: root
+    
+    - name: Chown Kubernetes config file for user
+      shell: sudo chown $(id -u):$(id -g) $HOME/.kube/config
+      become_user: "{{ user }}"

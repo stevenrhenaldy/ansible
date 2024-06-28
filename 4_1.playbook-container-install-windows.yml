@@ -1,0 +1,70 @@
+- name: Install containerd in Windows Server 2019
+  hosts: workers_win
+  vars_files:
+    - variables.yml
+    
+  tasks:
+    - name: Test Connection
+      win_ping:
+
+#! === Hyper-V ===
+
+    - name: Install Hyper-V and Management Tools
+      win_feature:
+        name: "{{ item }}"
+        state: present
+        include_management_tools: true
+        include_sub_features: true
+      loop:
+        - Hyper-V
+        - Hyper-V-PowerShell
+      register: hyper_v_result
+
+    - name: Print Hyper-V result
+      debug:
+        msg: "{{ hyper_v_result }}"
+    
+    - name: Restart windows server
+      win_shell: Restart-Computer -Force
+      when: ansible_reboot_pending | bool
+
+    - name: Wait for the machine to reboot
+      wait_for_connection:
+        delay: 10
+        timeout: 600
+    
+    - name: Touch a file (creates if not present, updates modification time if present)
+      win_file:
+        path: C:/k
+        state: directory
+    
+#! === Install containerd ===
+
+    - name: Download Install-Containerd.ps1 script
+      win_get_url:
+        url: https://raw.githubusercontent.com/kubernetes-sigs/sig-windows-tools/master/hostprocess/Install-Containerd.ps1
+        dest: C:/k/Install-Containerd.ps1
+        force: yes
+    
+    - name: Install containerd
+      win_shell: C:/k/Install-Containerd.ps1 -ContainerDVersion 1.7.17
+      register: install_containerd_result
+
+    - name: Print Install Containerd result
+      debug:
+        msg: "{{ install_containerd_result.stdout_lines}}"
+
+    - name: Wait for the machine to reboot
+      wait_for_connection:
+        delay: 10
+        timeout: 600
+    
+    - name: Check install containerd
+      win_shell: containerd --version
+      register: containerd_version
+
+    - name: Print Containerd version
+      debug:
+        msg: "{{ containerd_version.stdout_lines}}"
+    
+

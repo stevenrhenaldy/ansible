@@ -1,0 +1,29 @@
+---
+- name: Install Docker in Windows Server 2019
+  hosts: workers_win
+  vars_files:
+    - variables.yml
+    
+  tasks:
+  - name: Check the minimum Windows build number
+    include_tasks: check-build-number.yml
+    tags: check
+
+  - name: Install Windows Containers and Hyper-V Windows Features (if not already present)
+    include_tasks: install-windows-container-features.yml
+    tags: dockerinstall
+
+  - name: Install Docker on Windows (always the newest version) and pull needed base images
+    include_tasks: install-docker.yml
+    tags: dockerinstall
+
+  - name: Install Docker Compose (also always the newest version)
+    include_tasks: install-docker-compose.yml
+    tags: dockerinstall
+
+  - name: Run a Microsoft Docker Windows Testcontainer
+    include_tasks: run-test-container.yml
+
+  - name: Your Windows VM is ready to install Kubernetes.
+    debug:
+      msg: "Docker is ready. Please proceed to install Kubernetes."

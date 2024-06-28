@@ -1,0 +1,45 @@
+user: administrator
+
+required_packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg-agent
+  - software-properties-common
+
+containerd_version: 1.7.17
+
+kubernetes_engines_ubuntu:
+  - kubelet=1.28.10-1.1
+  - kubeadm=1.28.10-1.1
+  - kubectl=1.28.10-1.1
+
+k8s_package_ubuntu:
+  - kubelet
+  - kubeadm
+  - kubectl
+
+
+kubeadm_config: |
+  kind: ClusterConfiguration
+  apiVersion: kubeadm.k8s.io/v1beta3
+  kubernetesVersion: v1.28.10
+  networking:
+    serviceSubnet: "10.96.0.0/16"
+    podSubnet: "10.244.0.0/24"
+  ---
+  kind: KubeletConfiguration
+  apiVersion: kubelet.config.k8s.io/v1beta1
+  cgroupDriver: systemd
+
+k8s_install_dir_windows: C:\k
+
+k8s_version_windows: 1.28.10
+
+
+
+
+
+k8s_config_file: $HOME/.kube/config
+
+docker_version_windows: 20.10.11

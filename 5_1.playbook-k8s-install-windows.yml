@@ -1,0 +1,67 @@
+---
+- name: Install K8s in Windows Server 2019
+  hosts: workers_win
+  vars_files:
+    - variables.yml
+
+
+  tasks:  
+    - name: Test Connection
+      win_ping:
+
+#! === Donwload kubeadm, kubelet & kubectl ===
+    - name: Download kubelet and kubeadm
+      win_get_url:
+        url: https://raw.githubusercontent.com/kubernetes-sigs/sig-windows-tools/master/hostprocess/PrepareNode.ps1
+        dest: C:/k/PrepareNode.ps1
+        force: yes
+    
+    - name: Run a powershell script to install Kubernetes
+      win_shell: C:/k/PrepareNode.ps1 -KubernetesVersion v{{ k8s_version_windows }}
+
+    - name: Download kubectl
+      win_get_url:
+        url: https://dl.k8s.io/release/v1.28.10/bin/windows/amd64/kubectl.exe
+        dest: C:/k/kubectl.exe
+        force: yes
+    
+    - name: Check kubernetes installation 
+      win_shell: kubectl version --client
+      register: kubectl_version
+
+    - name: Print Kubernetes Version
+      debug:
+        msg: "{{ kubectl_version.stdout_lines }}"
+    
+ #! === Add kubectl to path ===
+
+    - name: Add kubectl to path
+      win_path:
+        elements:
+          - "{{ k8s_install_dir_windows }}"
+        state: present
+        scope: machine
+
+    - name: Add KUBECONFIG environment variable referring to K8s config file
+      win_environment:
+        name: KUBECONFIG
+        value: "{{ k8s_install_dir_windows }}/config"
+        state: present
+        level: machine
+
+ #! === copy config to windows node ===
+
+    - name: Copy K8s config file from Ansible controller to windows host
+      win_copy:
+        src: "/home/{{ user }}/.kube/config"
+        dest: "{{ k8s_install_dir_windows }}\\config"
+        remote_src: no
+        force: yes
+
+    - name: Run kubectl cluster-info to test kubectl functionality
+      win_shell: kubectl cluster-info
+      register: kubectl_cluster_info
+
+    - name: Print kubectl cluster-info output
+      debug:
+        msg: "{{ kubectl_cluster_info.stdout_lines }}"

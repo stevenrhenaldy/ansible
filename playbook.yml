@@ -1,0 +1,58 @@
+---
+- name: Install Docker
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update apt repo.
+      command: |
+        sudo sed -i '/cdrom:/ s/^\(.*\)$/#\1/g' /etc/apt/sources.list
+        sudo apt-get update -y
+
+    - name: Add certificates.
+      command: |
+        sudo apt-get install -y apt-transport-https ca-certificates curl 
+        sudo apt-get install -y software-properties-common gnupg2 
+
+    - name: Add Docker official GPG key.
+      command: |
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key --keyring /etc/apt/trusted.gpg.d/docker.gpg add -
+        
+    - name: Add Docker apt repository.
+      command: |
+        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        
+    - name: Update apt repo.
+      command: |        
+        sudo apt-get update -y
+
+    - name: Ansible install Docker if not exist.
+      apt: 
+        name: 
+          - docker-ce=5:19.03.11~3-0~ubuntu-$(lsb_release -cs)
+          - docker-ce-cli=5:19.03.11~3-0~ubuntu-$(lsb_release -cs)
+          - containerd.io=1.2.13-2
+        state: present
+        
+    - name: Set Docker to use systemd as control group.
+      command: |
+        cat <<EOF | sudo tee /etc/docker/daemon.json
+        {
+          "exec-opts": ["native.cgroupdriver=systemd"],
+          "log-driver": "json-file",
+          "log-opts": {
+            "max-size": "100m"
+          },
+          "storage-driver": "overlay2"
+        }
+        EOF
+        sudo mkdir -p /etc/systemd/system/docker.service.d
+        sudo systemctl daemon-reload
+        sudo systemctl restart docker
+        
+    - name: Give administrative right to user Docker.
+      command: |
+        sudo usermod -aG docker ${USER}
+        
+    - name: Test Docker installation.
+      command: |
+        docker version
