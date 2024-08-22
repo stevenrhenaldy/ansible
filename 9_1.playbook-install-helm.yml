@@ -6,7 +6,7 @@
 
   tasks:
   - name: Test Connection
-    ping:
+    win_ping:
 
   - name: Install Python
     win_shell: choco install python
