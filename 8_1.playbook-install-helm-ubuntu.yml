@@ -29,12 +29,13 @@
       update_cache: yes
 
   - name: install helm
+    become: yes
     apt: 
       name: helm
       state: present
 
   - name: Test Helm
-    win_shell: helm version
+    shell: helm version
     register: helm_version
 
   - name: Helm Version 
