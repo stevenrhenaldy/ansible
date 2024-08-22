@@ -1,0 +1,9 @@
+- name: Install Kubernetes Dashboard in control_plane
+  hosts: control_plane
+  vars_files:
+  - variables.yml
+  - secret.yml
+
+  tasks:
+  - name: Test Connection
+    ping:
