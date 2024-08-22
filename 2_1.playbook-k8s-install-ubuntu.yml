@@ -1,6 +1,8 @@
 ---
 - name: Install Kubernetes in Ubuntu
-  hosts: control_plane
+  hosts:
+  - control_plane
+  - workers_ubuntu
   become: true
   vars_files:
     - variables.yml

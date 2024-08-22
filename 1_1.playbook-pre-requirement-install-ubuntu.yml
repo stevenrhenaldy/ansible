@@ -1,6 +1,8 @@
 ---
 - name: Install ContainerD, runc and CNI plugins on Ubuntu 20.04
-  hosts: control_plane
+  hosts: 
+    - control_plane
+    - workers_ubuntu
   become: true
   vars_files: 
     - secret.yml
