@@ -12,18 +12,19 @@
   - name: Deploy Kubernetes Dashboard
     shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.5.0/aio/deploy/recommended.yaml
 
-  - name: Create a new service-account named admin-user
+  - name: Create a new service-account named "admin-user"
     shell: |-
-      kubectl apply -f -
+      cat <<EOF | kubectl apply -f -
       apiVersion: v1
       kind: ServiceAccount
       metadata:
         name: admin-user
         namespace: kubernetes-dashboard
+      EOF
 
   - name: Bind role to the new service-account
     shell: |-
-      kubectl apply -f -
+      cat <<EOF | kubectl apply -f -
       apiVersion: rbac.authorization.k8s.io/v1
       kind: ClusterRoleBinding
       metadata:
@@ -36,6 +37,7 @@
       - kind: ServiceAccount
         name: admin-user
         namespace: kubernetes-dashboard
+      EOF
 
   - name: Create Token
     command: kubectl -n kubernetes-dashboard create token admin-user
