@@ -10,18 +10,21 @@
     ping:
 
   - name: Add Helm Keyring
+    become: yes
     shell: curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null
 
   - name: install apt-transport-https
+    become: yes
     apt: 
       name: apt-transport-https
       state: present
 
   - name: Add keyring to source list
+    become: yes
     shell: echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
 
   - name: Update apt packages
-    become: true
+    become: yes
     apt:
       update_cache: yes
 
