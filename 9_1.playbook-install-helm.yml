@@ -10,14 +10,6 @@
 
   - name: Install Python
     win_shell: choco install python
-  
-  - name: Test Python
-    win_shell: python version
-    register: python_version
-
-  - name: Python Version 
-    debug:
-      msg: "{{ python_version.stdout }}"
 
   - name: Install Kubernetes Helm
     win_shell: choco install kubernetes-helm
