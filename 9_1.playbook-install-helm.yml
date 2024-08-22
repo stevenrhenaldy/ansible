@@ -9,7 +9,7 @@
     win_ping:
     
   - name: Install Kubernetes Helm
-    win_shell: choco install -y kubernetes-helm
+    win_shell: choco install kubernetes-helm -y 
 
   - name: Test Helm
     win_shell: helm version
