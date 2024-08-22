@@ -1,5 +1,5 @@
 - name: Install Helm in control_plane
-  hosts: control_plane
+  hosts: workers_win
   vars_files:
   - variables.yml
   - secret.yml
@@ -7,3 +7,15 @@
   tasks:
   - name: Test Connection
     ping:
+
+  - name: Deploy Kubernetes Dashboard
+    win_shell: choco install kubernetes-helm
+
+  - name: Test Helm
+    win_shell: helm version
+    register: helm_version
+
+  - name: Helm Version 
+    debug:
+      msg: "{{ helm_version.stdout }}"
+
