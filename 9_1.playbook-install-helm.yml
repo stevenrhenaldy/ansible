@@ -1,4 +1,4 @@
-- name: Install Helm in control_plane
+- name: Install Helm in Windows Worker Node
   hosts: workers_win
   vars_files:
   - variables.yml
@@ -8,7 +8,18 @@
   - name: Test Connection
     ping:
 
-  - name: Deploy Kubernetes Dashboard
+  - name: Install Python
+    win_shell: choco install python
+  
+  - name: Test Python
+    win_shell: python version
+    register: python_version
+
+  - name: Python Version 
+    debug:
+      msg: "{{ python_version.stdout }}"
+
+  - name: Install Kubernetes Helm
     win_shell: choco install kubernetes-helm
 
   - name: Test Helm
