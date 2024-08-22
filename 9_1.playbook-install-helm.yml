@@ -7,12 +7,9 @@
   tasks:
   - name: Test Connection
     win_ping:
-
-  - name: Install Python
-    win_shell: choco install python
-
+    
   - name: Install Kubernetes Helm
-    win_shell: choco install kubernetes-helm
+    win_shell: choco install -y kubernetes-helm
 
   - name: Test Helm
     win_shell: helm version
