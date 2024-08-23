@@ -1,0 +1,29 @@
+---
+- name: Install Kubernetes Dashboard in control_plane
+  hosts: control_plane
+  vars_files:
+  - variables.yml
+  - secret.yml
+
+  tasks:
+  - name: Test Connection
+    ping:
+
+  - name: Deploy Kubernetes Dashboard using helm
+    shell: helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard  --set affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key=kubernetes.io/os   --set affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].operator=In   --set affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[0]=linux
+    register: helm_output
+
+  - name: Helm Output
+    debug:
+      msg: "{{ helm_output.stdout }}"
+  
+  - name: Create Token
+    command: kubectl -n kubernetes-dashboard create token admin-user
+    register: kube_dashboard_token
+
+  - name: Print Token
+    debug:
+      msg: "{{ kube_dashboard_token.stdout }}"
+
+
+
